@@ -23,13 +23,21 @@ Python integration for Playwright tests - brings AI-powered failure analysis, fl
 
 ## Installation
 
-Install directly from this directory:
+From this repo (local / editable):
 
 ```bash
 pip install -e .
 ```
 
-The package is self-contained. The compiled JavaScript report generator is bundled inside - Node.js is only needed at runtime to execute it.
+From GitHub:
+
+```bash
+pip install "python-playwright-reporter @ git+https://github.com/kushal-omnius/python-playwright-reporter.git"
+```
+
+The compiled JavaScript report generator (`_bundled_dist/`) is committed to this
+repo and bundled into the installed package — no `npm install` or build step is
+needed. Node.js must be available at runtime to execute it.
 
 ## Quick Start
 
@@ -79,10 +87,14 @@ export GEMINI_API_KEY="..."
 
 ## How It Works
 
-1. **pytest** runs your tests with JSON reporting enabled
-2. **Converter** transforms pytest JSON to Playwright Smart Reporter format
-3. **Node.js bridge** calls the bundled HTML generator
-4. **Output** interactive HTML report
+1. **pytest** runs tests; `plugin.py` collects the JSON report and the
+   pytest-playwright `--output` artifacts directory
+2. **`converter.py`** maps the pytest JSON to the Smart Reporter data format and
+   embeds any failure screenshots as base64 data URIs
+3. **`bridge.py`** spawns `node _bundled_dist/generators/html-generator.js`,
+   passing the converted data JSON — Node.js writes `smart-report.html`
+4. **`bridge.py`** post-processes the HTML to inject copy-to-clipboard buttons
+   for test names and spec file paths
 
 ## Development
 

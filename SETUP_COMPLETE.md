@@ -29,8 +29,21 @@ maintained separately under the MIT licence.
   `--output` dir) and passes it to `bridge.generate_report()` as `output_dir`, so
   screenshots are embedded automatically without any extra configuration.
 
+### `_bundled_dist/`
+- Added the compiled JS generators from the upstream v1.0.8 wheel and committed
+  them to this repo. This makes the package self-contained when installed from
+  GitHub — no separate download or build step is needed.
+- To update: see the "Updating the bundled JS generators" section in
+  [DEVELOPMENT.md](DEVELOPMENT.md).
+
 ## Installation
 
+From this repo (local):
 ```bash
 pip install -e .
+```
+
+From GitHub (e.g. as a dependency in another project):
+```bash
+pip install "python-playwright-reporter @ git+https://github.com/kushal-omnius/python-playwright-reporter.git"
 ```
