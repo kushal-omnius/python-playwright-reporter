@@ -1,8 +1,8 @@
-# Local copy — modifications over upstream
+# separate copy — modifications over upstream
 
 This is a standalone copy of the `python/` folder from
 [qa-gary-parker/playwright-smart-reporter](https://github.com/qa-gary-parker/playwright-smart-reporter),
-maintained locally under the MIT licence.
+maintained separately under the MIT licence.
 
 ## Changes relative to upstream (v1.0.8)
 

@@ -2,9 +2,9 @@
 
 Python integration for Playwright tests - brings AI-powered failure analysis, flakiness detection, and beautiful HTML reports to your pytest test suites.
 
-> **Local copy notice:** this directory is a verbatim copy of the `python/` folder from
+> **separate copy notice:** this directory is a verbatim copy of the `python/` folder from
 > [qa-gary-parker/playwright-smart-reporter](https://github.com/qa-gary-parker/playwright-smart-reporter),
-> used and modified locally under the terms of the MIT licence. The original copyright notice is
+> used and modified separately under the terms of the MIT licence. The original copyright notice is
 > retained in [LICENSE](LICENSE). It is not affiliated with or endorsed by the upstream project.
 
 ## Features

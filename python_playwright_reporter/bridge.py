@@ -124,7 +124,7 @@ def _get_dist_root() -> Path:
     raise RuntimeError(
         "Cannot find the compiled Smart Reporter JS files.\n"
         "If installed via pip, the package may be corrupt - try reinstalling.\n"
-        "If developing locally, run 'npm run build' from the repo root."
+        "If developing separately, run 'npm run build' from the repo root."
     )
 
 
