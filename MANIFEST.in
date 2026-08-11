@@ -1,0 +1,3 @@
+include LICENSE
+include python_playwright_reporter/py.typed
+recursive-include python_playwright_reporter/_bundled_dist *.js
