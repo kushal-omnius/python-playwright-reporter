@@ -71,11 +71,11 @@ class SmartReporterPlugin:
             # Resolve the pytest-playwright --output directory so the converter
             # can embed failure screenshots as data URIs in the report.
             output_dir_str = getattr(self.config.option, "output", None)
-            output_dir = Path(output_dir_str) if output_dir_str else None
+            output_dir = Path(output_dir_str).resolve() if output_dir_str else None
 
             bridge = SmartReporterBridge()
             bridge.generate_report(
-                pytest_json_path=pytest_json,
+                pytest_json_path=pytest_json.resolve(),
                 output_html=self.output_path,
                 output_dir=output_dir,
             )

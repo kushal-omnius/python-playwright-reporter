@@ -2,11 +2,53 @@
 JSON converter: pytest-json-report format -> Playwright Smart Reporter format
 """
 import base64
+import importlib.metadata
 import json
+import platform
 import re
+import sys
 from datetime import datetime
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Union
+
+
+def _collect_env_info(data: Dict[str, Any], tests: List[Dict[str, Any]]) -> Dict[str, Any]:
+    """Collect runtime environment metadata to display in the report overview."""
+    def _pkg(name: str) -> str:
+        try:
+            return importlib.metadata.version(name)
+        except importlib.metadata.PackageNotFoundError:
+            return ""
+
+    # Browsers: infer from raw nodeids (before browser suffix is stripped from title)
+    browser_map = {"chromium": "Chromium", "firefox": "Firefox", "webkit": "WebKit"}
+    found_browsers = []
+    for test in tests:
+        nodeid = test.get("nodeid", "")
+        for key, label in browser_map.items():
+            if nodeid.endswith(f"[{key}]") and label not in found_browsers:
+                found_browsers.append(label)
+
+    # Base URL: written by root conftest into pytest-metadata → pytest-json-report environment
+    pytest_env = data.get("environment") or {}
+    base_url = pytest_env.get("Base URL", "")
+
+    reporter_version = _pkg("python-playwright-reporter")
+
+    packages: Dict[str, str] = {}
+    for pkg in ("pytest", "pytest-playwright", "playwright"):
+        v = _pkg(pkg)
+        if v:
+            packages[pkg] = v
+
+    return {
+        "python": sys.version.split()[0],
+        "platform": platform.platform(),
+        "packages": packages,
+        "browsers": found_browsers,
+        "base_url": base_url,
+        "reporter_version": reporter_version,
+    }
 
 
 def _to_ms(seconds: Optional[Union[float, int]]) -> int:
@@ -105,6 +147,12 @@ def convert_pytest_json(
         else:
             file_part, title = "unknown", nodeid
 
+        # Strip pytest-playwright browser parametrize suffix (e.g. [chromium])
+        for _browser in ("[chromium]", "[firefox]", "[webkit]"):
+            if title.endswith(_browser):
+                title = title[: -len(_browser)].rstrip()
+                break
+
         outcome = test.get("outcome")
         duration = test.get("duration")
         error = _extract_error(test)
@@ -149,6 +197,7 @@ def convert_pytest_json(
             "summaries": [],
         },
         "startTime": int(float(created) * 1000),
+        "environment": _collect_env_info(data, tests),
         "options": {
             # Feature flags - enable what makes sense for pytest
             "enableTraceViewer": False,
@@ -161,6 +210,9 @@ def convert_pytest_json(
             "enableStabilityScore": True,
             "enableFailureClustering": True,
             "enableRetryAnalysis": False,
+            # Reports are opened as file:// URLs where external resources are blocked.
+            # cspSafe skips Google Fonts <link> tags and uses system fonts instead.
+            "cspSafe": True,
         },
     }
 

@@ -114,7 +114,7 @@ function generateTestListItems(results, showTraceSection, attention = { newFailu
 /**
  * Generate the Overview content with executive summary
  */
-function generateOverviewContent(results, comparison, failureClusters, passed, failed, skipped, flaky, slow, newTests, total, passRate, totalDuration, history) {
+function generateOverviewContent(results, comparison, failureClusters, passed, failed, skipped, flaky, slow, newTests, total, passRate, totalDuration, history, environment) {
     // Calculate deltas from comparison
     const prevPassed = comparison?.baselineRun.passed ?? passed;
     const prevFailed = comparison?.baselineRun.failed ?? failed;
@@ -253,7 +253,10 @@ function generateOverviewContent(results, comparison, failureClusters, passed, f
 
       <div class="hero-stat-card">
         <div class="hero-stat-main">
-          <div class="hero-stat-value">${(0, utils_1.formatDuration)(totalDuration)}</div>
+          <div class="hero-stat-value">
+            <span class="duration-value">${(0, utils_1.formatDuration)(totalDuration)}</span>
+            <span class="duration-icon">⏱️</span>
+          </div>
           ${durationDeltaPercent !== 0 ? `<div class="hero-stat-delta ${durationDeltaPercent < 0 ? 'positive' : 'negative'}">${durationDeltaPercent < 0 ? '↓' : '↑'}${Math.abs(durationDeltaPercent)}%</div>` : ''}
         </div>
         <div class="hero-stat-label">Duration</div>
@@ -290,6 +293,33 @@ function generateOverviewContent(results, comparison, failureClusters, passed, f
     ${attentionHtml}
 
     ${clustersHtml}
+
+    <!-- Environment -->
+    ${environment ? `
+    <div class="overview-section">
+      <div class="section-header">
+        <span class="section-icon">🖥️</span>
+        <span class="section-title">Environment</span>
+      </div>
+      <div class="env-card">
+        <table class="env-table">
+          <tbody>
+            ${environment.python ? `<tr><td class="env-label">Python</td><td class="env-value">${(0, utils_1.escapeHtml)(environment.python)}</td></tr>` : ''}
+            ${environment.platform ? `<tr><td class="env-label">Platform</td><td class="env-value">${(0, utils_1.escapeHtml)(environment.platform)}</td></tr>` : ''}
+            ${environment.packages && Object.keys(environment.packages).length ? `
+            <tr>
+              <td class="env-label">Packages</td>
+              <td class="env-value">
+                ${Object.entries(environment.packages).map(([k, v]) => `<span class="env-pkg"><span class="env-pkg-name">${(0, utils_1.escapeHtml)(k)}</span> <span class="env-pkg-ver">${(0, utils_1.escapeHtml)(v)}</span></span>`).join('')}
+              </td>
+            </tr>` : ''}
+            ${environment.browsers && environment.browsers.length ? `<tr><td class="env-label">Browser</td><td class="env-value">${environment.browsers.map(b => `<span class="env-browser-tag">${(0, utils_1.escapeHtml)(b)}</span>`).join('')}</td></tr>` : ''}
+            ${environment.base_url ? `<tr><td class="env-label">Base URL</td><td class="env-value"><a class="env-url" href="${(0, utils_1.escapeHtml)(environment.base_url)}" target="_blank" rel="noopener">${(0, utils_1.escapeHtml)(environment.base_url)}</a></td></tr>` : ''}
+          </tbody>
+        </table>
+      </div>
+    </div>
+    ` : ''}
 
     <!-- Quick Insights -->
     <div class="overview-section">
@@ -350,7 +380,7 @@ function generateOverviewContent(results, comparison, failureClusters, passed, f
  * Generate complete HTML report with new app-shell layout
  */
 function generateHtml(data) {
-    const { results, history, startTime, options, comparison, historyRunSnapshots, failureClusters, ciInfo } = data;
+    const { results, history, startTime, options, comparison, historyRunSnapshots, failureClusters, ciInfo, environment } = data;
     const totalDuration = Date.now() - startTime;
     // Issue #17 & #16: Use outcome-based counting for accurate stats
     // - Flaky tests (outcome='flaky') passed on retry - count as passed AND flaky
@@ -495,7 +525,7 @@ function generateHtml(data) {
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Smart Test Report</title>${fontLinks}
+  <title>Smart Report</title>${fontLinks}
   <style>
 ${generateStyles(passRate, cspSafe)}
   </style>
@@ -514,17 +544,12 @@ ${generateStyles(passRate, cspSafe)}
         </button>
         <div class="logo">
           <div class="logo-text">
-            <span class="logo-title">Smart Reporter</span>
-            <span class="logo-subtitle">Playwright test reports for pytest.</span>
+            <span class="logo-title" title="Playwright test reports for pytest.">Smart Report</span>
           </div>
+          <div class="timestamp" title="Test run started">${startTime ? new Date(startTime).toLocaleString() : new Date().toLocaleString()}</div>
         </div>
-        <nav class="breadcrumbs">
-          <span class="breadcrumb active" data-view="tests">Tests</span>
-          <span class="breadcrumb-separator">›</span>
-          <span class="breadcrumb" id="breadcrumb-detail"></span>
-        </nav>
-      </div>
-      <div class="top-bar-right">
+        </div>
+        <div class="top-bar-left">
         <button class="search-trigger" onclick="openSearch()" title="Search (⌘K)" aria-label="Search tests">
           <span class="search-icon-btn">🔍</span>
           <span class="search-label">Search...</span>
@@ -564,10 +589,13 @@ ${generateStyles(passRate, cspSafe)}
             </button>
           </div>
         </div>
-        <div class="timestamp">${new Date().toLocaleString()}</div>
-      </div>
+        </div>
     </header>
-
+    <nav class="breadcrumbs">
+      <span class="breadcrumb active" data-view="tests">.</span>
+      <span class="breadcrumb-separator">›</span>
+      <span class="breadcrumb" id="breadcrumb-detail"></span>
+    </nav>
     ${ciInfo ? `
     <!-- CI Environment Info Bar -->
     <div class="ci-info-bar">
@@ -713,12 +741,8 @@ ${generateStyles(passRate, cspSafe)}
         </div>
       </div>
 
-      <!-- Duration -->
       <div class="sidebar-footer">
-        <div class="run-duration">
-          <span class="duration-icon">⏱️</span>
-          <span class="duration-value">${(0, utils_1.formatDuration)(totalDuration)}</span>
-        </div>
+        ${environment && environment.reporter_version ? `<div class="reporter-version">Smart Reporter v${(0, utils_1.escapeHtml)(environment.reporter_version)}</div>` : ''}
       </div>
     </aside>
 
@@ -730,7 +754,7 @@ ${generateStyles(passRate, cspSafe)}
           <h2 class="view-title">Overview</h2>
         </div>
         <div class="overview-content">
-          ${generateOverviewContent(results, comparison, failureClusters, passed, failed, skipped, flaky, slow, newTests, total, passRate, totalDuration, history)}
+          ${generateOverviewContent(results, comparison, failureClusters, passed, failed, skipped, flaky, slow, newTests, total, passRate, totalDuration, history, environment)}
         </div>
       </section>
 
@@ -741,8 +765,8 @@ ${generateStyles(passRate, cspSafe)}
           <div class="test-list-panel">
             <div class="test-list-header">
               <div class="test-list-tabs" role="tablist" aria-label="Test grouping options">
-                <button class="tab-btn active" data-tab="all" onclick="switchTestTab('all')" role="tab" aria-selected="true" aria-controls="tab-all">All Tests</button>
                 <button class="tab-btn" data-tab="by-file" onclick="switchTestTab('by-file')" role="tab" aria-selected="false" aria-controls="tab-by-file">By Spec</button>
+                <button class="tab-btn active" data-tab="all" onclick="switchTestTab('all')" role="tab" aria-selected="true" aria-controls="tab-all">All Tests</button>
                 <button class="tab-btn" data-tab="by-status" onclick="switchTestTab('by-status')" role="tab" aria-selected="false" aria-controls="tab-by-status">By Status</button>
                 <button class="tab-btn" data-tab="by-stability" onclick="switchTestTab('by-stability')" role="tab" aria-selected="false" aria-controls="tab-by-stability">By Stability</button>
               </div>
@@ -811,6 +835,9 @@ ${generateStyles(passRate, cspSafe)}
               </div>
             </div>
           </div>
+
+          <!-- Resizer handle -->
+          <div class="panel-resizer" id="panel-resizer" role="separator" aria-orientation="vertical" aria-label="Resize panels" title="Drag to resize"></div>
 
           <!-- Test Detail (Detail) -->
           <div class="test-detail-panel" id="test-detail-panel">
@@ -900,7 +927,7 @@ function generateStyles(passRate, cspSafe = false) {
     // Font families - use system fonts in CSP-safe mode
     const primaryFont = cspSafe
         ? "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif"
-        : "'Space Grotesk', system-ui, sans-serif";
+        : "'Calibri', system-ui, sans-serif";
     const monoFont = cspSafe
         ? "ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, 'Liberation Mono', monospace"
         : "'JetBrains Mono', ui-monospace, monospace";
@@ -1123,8 +1150,8 @@ function generateStyles(passRate, cspSafe = false) {
 
     .logo-text {
       display: flex;
-      flex-direction: column;
-      line-height: 1.2;
+      align-items: center;
+      line-height: 1;
     }
 
     .logo-title {
@@ -1142,10 +1169,12 @@ function generateStyles(passRate, cspSafe = false) {
     .breadcrumbs {
       display: flex;
       align-items: center;
+      flex-wrap: nowrap;
+      white-space: nowrap;
       gap: 0.5rem;
-      margin-left: 1rem;
       padding-left: 1rem;
       border-left: 1px solid var(--border-subtle);
+      min-width: 100%;
     }
 
     .breadcrumb {
@@ -1604,6 +1633,13 @@ function generateStyles(passRate, cspSafe = false) {
       flex-shrink: 0;
     }
 
+    .reporter-version {
+      font-size: 0.7rem;
+      color: var(--text-muted);
+      text-align: center;
+      opacity: 0.6;
+    }
+
     .run-duration {
       display: flex;
       align-items: center;
@@ -1924,6 +1960,68 @@ function generateStyles(passRate, cspSafe = false) {
       margin-bottom: 1.5rem;
     }
 
+    .env-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-subtle);
+      border-radius: 10px;
+      padding: 0.75rem 1rem;
+    }
+
+    .env-table {
+      border-collapse: collapse;
+      width: 100%;
+      font-size: 0.85rem;
+    }
+
+    .env-table tr + tr td { padding-top: 0.45rem; }
+
+    .env-label {
+      color: var(--text-muted);
+      white-space: nowrap;
+      padding-right: 1.5rem;
+      vertical-align: top;
+      width: 6rem;
+    }
+
+    .env-value {
+      color: var(--text-primary);
+      font-family: ${monoFont};
+      word-break: break-all;
+    }
+
+    .env-pkg {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.3rem;
+      background: var(--bg-secondary);
+      border: 1px solid var(--border-subtle);
+      border-radius: 4px;
+      padding: 0.1rem 0.45rem;
+      margin: 0.15rem 0.25rem 0.15rem 0;
+      font-size: 0.78rem;
+    }
+
+    .env-pkg-name { color: var(--text-secondary); }
+    .env-pkg-ver  { color: var(--accent-blue); }
+
+    .env-browser-tag {
+      display: inline-block;
+      background: var(--bg-secondary);
+      border: 1px solid var(--border-subtle);
+      border-radius: 4px;
+      padding: 0.1rem 0.5rem;
+      margin-right: 0.3rem;
+      font-size: 0.78rem;
+      color: var(--text-secondary);
+    }
+
+    .env-url {
+      color: var(--accent-blue);
+      text-decoration: none;
+    }
+
+    .env-url:hover { text-decoration: underline; }
+
     .section-header {
       display: flex;
       align-items: center;
@@ -2223,14 +2321,29 @@ function generateStyles(passRate, cspSafe = false) {
     ============================================ */
     .master-detail-layout {
       display: grid;
-      grid-template-columns: 380px 1fr;
+      grid-template-columns: var(--list-panel-width, 380px) 5px 1fr;
       height: 100%;
+    }
+
+    .panel-resizer {
+      grid-column: 2;
+      cursor: col-resize;
+      background: var(--border-subtle);
+      transition: background 0.15s;
+      position: relative;
+      z-index: 10;
+      user-select: none;
+    }
+
+    .panel-resizer:hover,
+    .panel-resizer.dragging {
+      background: var(--accent-blue);
     }
 
     .test-list-panel {
       display: flex;
       flex-direction: column;
-      border-right: 1px solid var(--border-subtle);
+      border-right: none;
       background: var(--bg-secondary);
       overflow: hidden;
     }
@@ -2348,7 +2461,7 @@ function generateStyles(passRate, cspSafe = false) {
     }
 
     .test-item-title {
-      font-size: 0.85rem;
+      font-size: 0.7rem;
       font-weight: 500;
       color: var(--text-primary);
       white-space: nowrap;
@@ -2662,6 +2775,11 @@ function generateStyles(passRate, cspSafe = false) {
     }
 
     /* Trend Chart - Pass Rate Over Time */
+    
+    .trend-content {
+      margin: 1rem;
+    }
+
     .trend-section {
       margin-bottom: 2rem;
       padding: 1.5rem;
@@ -4321,13 +4439,6 @@ function generateStyles(passRate, cspSafe = false) {
     }
 
     .file-group-header {
-      display: flex;
-      align-items: center;
-      gap: 0.75rem;
-      padding: 0.75rem 1rem;
-      background: var(--bg-secondary);
-      border: 1px solid var(--border-subtle);
-      border-radius: 8px;
       cursor: pointer;
       margin-bottom: 0.5rem;
       transition: all 0.2s;
@@ -4338,29 +4449,25 @@ function generateStyles(passRate, cspSafe = false) {
     }
 
     .file-group-header .expand-icon {
+      transform: rotate(90deg);
       transition: transform 0.2s;
     }
 
     .file-group.collapsed .file-group-header .expand-icon {
-      transform: rotate(-90deg);
+      transform: rotate(0deg);
     }
 
     .file-group-name {
       font-family: ${monoFont};
-      font-size: 0.9rem;
+      font-size: 0.8rem;
       color: var(--text-primary);
       flex: 1;
-    }
-
-    .file-group-stats {
-      display: flex;
-      gap: 0.5rem;
-      font-size: 0.75rem;
     }
 
     .file-group-stat {
       padding: 0.2rem 0.5rem;
       border-radius: 4px;
+      font-size: 0.5rem;
       font-family: ${monoFont};
     }
 
@@ -5249,7 +5356,7 @@ function generateStyles(passRate, cspSafe = false) {
     }
 
     .theme-toggle-icon { font-size: 1rem; }
-    .theme-label { font-size: 0.8rem; }
+    .theme-label { display: none; }
 
     .theme-menu {
       position: absolute;
@@ -5308,17 +5415,9 @@ function generateStyles(passRate, cspSafe = false) {
       font-size: 0.9rem;
     }
 
-    @media (max-width: 768px) {
-      .theme-label { display: none; }
-    }
-
     /* ============================================
        ACCESSIBILITY - FOCUS INDICATORS
     ============================================ */
-    *:focus-visible {
-      outline: 2px solid var(--accent-blue);
-      outline-offset: 2px;
-    }
 
     button:focus-visible,
     .filter-chip:focus-visible,
@@ -5437,10 +5536,6 @@ function generateStyles(passRate, cspSafe = false) {
 
       /* Hide overlay on mobile - sidebar is persistent */
       .sidebar-overlay {
-        display: none;
-      }
-
-      .top-bar-left .breadcrumbs {
         display: none;
       }
 

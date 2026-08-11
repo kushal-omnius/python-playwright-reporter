@@ -40,32 +40,107 @@ _COPY_BUTTONS_SNIPPET = """\
 </style>
 <script>
 (function () {
-  function makeCopyBtn(getText) {
-    var btn = document.createElement('button');
-    btn.className = 'copy-btn';
-    btn.title = 'Copy to clipboard';
-    btn.textContent = '⎘';
-    btn.addEventListener('click', function (e) {
-      e.stopPropagation();
-      navigator.clipboard.writeText(getText()).then(function () {
-        btn.textContent = '✓';
-        btn.classList.add('copied');
-        setTimeout(function () {
-          btn.textContent = '⎘';
-          btn.classList.remove('copied');
-        }, 1500);
-      });
-    });
-    return btn;
+  function copyText(text) {
+    var el = document.createElement('textarea');
+    el.value = text;
+    el.setAttribute('readonly', '');
+    el.style.cssText = 'position:absolute;left:-9999px;top:0';
+    document.body.appendChild(el);
+    el.focus();
+    el.select();
+    document.execCommand('copy');
+    document.body.removeChild(el);
   }
 
-  document.querySelectorAll('.test-title').forEach(function (el) {
-    el.after(makeCopyBtn(function () { return el.textContent.trim(); }));
-  });
+  // Event delegation at capture phase — survives DOM re-renders caused by
+  // the report's own tab/filter/sort handlers replacing .test-list-content.
+  document.addEventListener('click', function (e) {
+    var btn = e.target && e.target.closest && e.target.closest('.copy-btn[data-copy]');
+    if (!btn) return;
+    e.stopPropagation();
+    e.preventDefault();
+    copyText(btn.getAttribute('data-copy'));
+    btn.textContent = '✓';
+    btn.classList.add('copied');
+    setTimeout(function () {
+      btn.textContent = '⎘';
+      btn.classList.remove('copied');
+    }, 1500);
+  }, true);
 
-  document.querySelectorAll('.test-file').forEach(function (el) {
-    el.after(makeCopyBtn(function () { return el.textContent.trim(); }));
-  });
+  // Inject copy buttons; text stored as data-copy so it survives re-reads.
+  // data-copy-wired on the source element prevents double injection.
+  function injectCopyBtns(root) {
+    (root || document).querySelectorAll(
+      '.test-title:not([data-copy-wired]), .test-file:not([data-copy-wired])'
+    ).forEach(function (el) {
+      el.setAttribute('data-copy-wired', '1');
+      var text = el.textContent.trim();
+      var btn = document.createElement('button');
+      btn.className = 'copy-btn';
+      btn.title = 'Copy to clipboard';
+      btn.textContent = '⎘';
+      btn.setAttribute('data-copy', text);
+      el.after(btn);
+    });
+  }
+
+  injectCopyBtns();
+
+  // Re-inject when the report rebuilds the list (tab switch, filter, sort).
+  var listContent = document.querySelector('.test-list-content');
+  if (listContent && window.MutationObserver) {
+    new MutationObserver(function (mutations) {
+      var hasNewNodes = mutations.some(function (m) {
+        return Array.from(m.addedNodes).some(function (n) {
+          return n.nodeType === 1 && !n.classList.contains('copy-btn');
+        });
+      });
+      if (hasNewNodes) injectCopyBtns(listContent);
+    }).observe(listContent, { childList: true, subtree: true });
+  }
+
+  // Panel resizer
+  (function () {
+    var resizer = document.getElementById('panel-resizer');
+    var layout = resizer && resizer.closest('.master-detail-layout');
+    if (!resizer || !layout) return;
+
+    var MIN_WIDTH = 200;
+    var MAX_WIDTH = 700;
+    var startX, startWidth;
+
+    resizer.addEventListener('mousedown', function (e) {
+      e.preventDefault();
+      startX = e.clientX;
+      startWidth = parseInt(getComputedStyle(layout).getPropertyValue('--list-panel-width') || '380', 10);
+      resizer.classList.add('dragging');
+      document.body.style.cursor = 'col-resize';
+      document.body.style.userSelect = 'none';
+
+      function onMove(e) {
+        var delta = e.clientX - startX;
+        var newWidth = Math.min(MAX_WIDTH, Math.max(MIN_WIDTH, startWidth + delta));
+        layout.style.setProperty('--list-panel-width', newWidth + 'px');
+      }
+
+      function onUp() {
+        resizer.classList.remove('dragging');
+        document.body.style.cursor = '';
+        document.body.style.userSelect = '';
+        document.removeEventListener('mousemove', onMove);
+        document.removeEventListener('mouseup', onUp);
+      }
+
+      document.addEventListener('mousemove', onMove);
+      document.addEventListener('mouseup', onUp);
+    });
+
+    // Double-click resets to default width
+    resizer.addEventListener('dblclick', function () {
+      layout.style.setProperty('--list-panel-width', '380px');
+    });
+  })();
 })();
 </script>
 """

@@ -7,8 +7,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 This repo is a standalone, separately-maintained copy of the `python/` folder from the upstream
 [qa-gary-parker/playwright-smart-reporter](https://github.com/qa-gary-parker/playwright-smart-reporter)
 monorepo (MIT licensed). It is not a git submodule or subtree — changes here do not sync
-upstream automatically. `SETUP_COMPLETE.md` documents every separate modification relative to
-upstream v1.0.8; check it before assuming upstream behavior applies here.
+upstream automatically.
 
 ## Commands
 
@@ -67,3 +66,8 @@ ahead of time (failures surface as a non-zero exit code from the generator scrip
 `SETUP_COMPLETE.md` is the changelog of record for separate-only changes (currently: screenshot
 embedding in `converter.py`/`bridge.py`, and the copy-button injection in `bridge.py`). Update it
 when adding further separate-only features, so the delta from upstream stays documented in one place.
+
+
+### Release creation:
+- when a new release is created pyproject.toml should be updated
+- changelog.md is maintained and used in a new release notes

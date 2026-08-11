@@ -4,7 +4,6 @@ This is a standalone copy of the `python/` folder from
 [qa-gary-parker/playwright-smart-reporter](https://github.com/qa-gary-parker/playwright-smart-reporter),
 maintained separately under the MIT licence.
 
-## Changes relative to upstream (v1.0.8)
 
 ### `converter.py`
 - Added `_screenshots_for_nodeid(output_dir, nodeid)` — scans the pytest-playwright
@@ -30,7 +29,7 @@ maintained separately under the MIT licence.
   screenshots are embedded automatically without any extra configuration.
 
 ### `_bundled_dist/`
-- Added the compiled JS generators from the upstream v1.0.8 wheel and committed
+- Added the compiled JS generators and committed
   them to this repo. This makes the package self-contained when installed from
   GitHub — no separate download or build step is needed.
 - To update: see the "Updating the bundled JS generators" section in

@@ -149,9 +149,9 @@ function generateTestCard(test, showTraceSection) {
          data-grade="${test.stabilityScore?.grade || ''}"${tagsAttr}${suiteAttr}${suitesAttr}${browserAttr}${projectAttr}>
       <div class="test-card-header" ${hasDetails ? `onclick="toggleDetails('${cardId}', event)"` : ''}>
         <div class="test-card-left">
-          <div class="status-indicator ${test.status === 'passed' ? 'passed' : test.status === 'skipped' ? 'skipped' : 'failed'}"></div>
-          <div class="test-info">
+           <div class="test-info">
             <div class="test-title-row">
+            <div class="status-indicator ${test.status === 'passed' ? 'passed' : test.status === 'skipped' ? 'skipped' : 'failed'}"></div>
               <span class="test-title">${(0, utils_1.escapeHtml)(test.title)}</span>
               ${suiteHtml}
             </div>
@@ -399,7 +399,7 @@ function generateTestDetails(test, cardId, showTraceSection) {
     if (test.aiSuggestion) {
         bodyDetails += `
       <div class="detail-section">
-        <div class="detail-label"><span class="icon">🤖</span> AI Suggestion</div>
+        <div class="detail-label"><span class="icon">🤖</span> AI SUMMARY</div>
         <div class="ai-box ai-markdown">${(0, utils_1.renderMarkdownLite)(test.aiSuggestion)}</div>
       </div>
     `;
@@ -491,12 +491,10 @@ function generateGroupedTests(results, showTraceSection, attention = { newFailur
         return `
     <div id="group-${groupId}" class="file-group">
       <div class="file-group-header" onclick="toggleGroup('${groupId}')">
-        <span class="expand-icon">▼</span>
+        <span class="expand-icon">▶</span>
         <span class="file-group-name">📄 ${(0, utils_1.escapeHtml)(file)}</span>
-        <div class="file-group-stats">
-          ${passed > 0 ? `<span class="file-group-stat passed">${passed} passed</span>` : ''}
-          ${failed > 0 ? `<span class="file-group-stat failed">${failed} failed</span>` : ''}
-        </div>
+        ${passed > 0 ? `<span class="file-group-stat passed">${passed} passed</span>` : ''}
+        ${failed > 0 ? `<span class="file-group-stat failed">${failed} failed</span>` : ''}
       </div>
       <div class="file-group-content">
         ${testListItems}
