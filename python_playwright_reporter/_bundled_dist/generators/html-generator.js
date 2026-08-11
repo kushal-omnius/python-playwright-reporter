@@ -514,8 +514,8 @@ ${generateStyles(passRate, cspSafe)}
         </button>
         <div class="logo">
           <div class="logo-text">
-            <span class="logo-title">StageWright Local</span>
-            <span class="logo-subtitle">Get your test stage right.</span>
+            <span class="logo-title">Smart Reporter</span>
+            <span class="logo-subtitle">Playwright test reports for pytest.</span>
           </div>
         </div>
         <nav class="breadcrumbs">

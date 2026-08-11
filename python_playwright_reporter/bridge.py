@@ -241,3 +241,39 @@ def _inject_copy_buttons(html_path: Path) -> None:
         html_path.write_text(html, encoding="utf-8")
     except Exception:
         pass  # never break report generation over a cosmetic feature
+
+
+def regenerate_html(data_json_path: Path, output_html: Path) -> bool:
+    """Re-generate the Smart Report HTML from an already-enriched data JSON file.
+
+    Use this when the intermediate .smart-reporter-data.json has been modified
+    after initial report generation (e.g. AI suggestions or screenshots injected)
+    and the HTML needs to be rebuilt to reflect those changes.
+
+    Runs the bundled Node.js HTML generator then injects copy-to-clipboard buttons.
+    Returns True on success, False on any error (never raises).
+    """
+    try:
+        dist_root = _get_dist_root()
+        gen_dir = str((dist_root / "generators").resolve()).replace("\\", "/")
+        script_content = _GENERATE_SCRIPT_TEMPLATE.format(generators_dir=gen_dir)
+
+        script_path = Path(output_html).parent / ".generate-report.js"
+        script_path.write_text(script_content, encoding="utf-8")
+        try:
+            node_cmd = "node.exe" if sys.platform.startswith("win") else "node"
+            result = subprocess.run(
+                [node_cmd, str(script_path),
+                 str(Path(data_json_path).resolve()),
+                 str(Path(output_html).resolve())],
+                capture_output=True, text=True,
+            )
+            if result.returncode != 0:
+                return False
+            _inject_copy_buttons(Path(output_html))
+            return True
+        finally:
+            if script_path.exists():
+                script_path.unlink()
+    except Exception:
+        return False
