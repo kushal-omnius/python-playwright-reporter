@@ -9,6 +9,20 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ---
 
+## [1.1.1] — 2026-08-12
+
+### Fixed
+
+- **Plugin entry point conflict with upstream `playwright-smart-reporter-python`**: both
+  packages previously registered their pytest plugin under the same `pytest11` key
+  (`playwright_smart_reporter`). When both are installed, Python's entry point resolution
+  picked only one — usually the upstream — causing our plugin to never load and
+  `--smart-reporter-title` to be treated as an unknown file path. The entry point key is
+  now `python_playwright_reporter` (unique to this package); no change to CLI flags or
+  user-facing behaviour.
+
+---
+
 ## [1.1.0] — 2026-08-12
 
 ### Added
