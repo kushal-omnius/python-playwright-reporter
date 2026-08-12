@@ -6746,6 +6746,33 @@ function generateScripts(testsJson, includeGallery, includeComparison, enableTra
 
       // Check for empty state
       checkEmptyState();
+
+      // Update export menu labels to reflect current filtered count
+      updateExportLabels();
+    }
+
+    function updateExportLabels() {
+      const visibleIds = new Set(
+        Array.from(document.querySelectorAll('.test-list-item[data-testid]'))
+          .filter(el => el.style.display !== 'none')
+          .map(el => el.dataset.testid)
+      );
+      const isFiltered = visibleIds.size < tests.length;
+      const countLabel = isFiltered ? ` (${visibleIds.size} filtered)` : '';
+      const jsonBtn = document.querySelector('.export-menu-item[onclick="exportJSON()"]');
+      const csvBtn = document.querySelector('.export-menu-item[onclick="exportCSV()"]');
+      if (jsonBtn) jsonBtn.innerHTML = `<span>📄</span> JSON${countLabel}`;
+      if (csvBtn) csvBtn.innerHTML = `<span>📊</span> CSV${countLabel}`;
+    }
+
+    function getExportableTests() {
+      const visibleIds = new Set(
+        Array.from(document.querySelectorAll('.test-list-item[data-testid]'))
+          .filter(el => el.style.display !== 'none')
+          .map(el => el.dataset.testid)
+      );
+      if (visibleIds.size === tests.length) return { exportTests: tests, isFiltered: false };
+      return { exportTests: tests.filter(t => visibleIds.has(t.testId)), isFiltered: true };
     }
 
     function checkEmptyState() {
@@ -6944,34 +6971,37 @@ function generateScripts(testsJson, includeGallery, includeComparison, enableTra
     }
 
     function exportJSON() {
+      const { exportTests, isFiltered } = getExportableTests();
       const data = {
         timestamp: new Date().toISOString(),
+        filtered: isFiltered,
         summary: {
-          total: tests.length,
-          passed: tests.filter(t => t.status === 'passed').length,
-          failed: tests.filter(t => t.status === 'failed' || t.status === 'timedOut').length,
-          skipped: tests.filter(t => t.status === 'skipped').length,
+          total: exportTests.length,
+          passed: exportTests.filter(t => t.status === 'passed').length,
+          failed: exportTests.filter(t => t.status === 'failed' || t.status === 'timedOut').length,
+          skipped: exportTests.filter(t => t.status === 'skipped').length,
         },
-        tests: tests
+        tests: exportTests
       };
 
       const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = 'test-results-' + new Date().toISOString().split('T')[0] + '.json';
+      a.download = 'test-results-' + (isFiltered ? 'filtered-' : '') + new Date().toISOString().split('T')[0] + '.json';
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
       URL.revokeObjectURL(url);
-      showToast('JSON exported successfully', 'success');
+      showToast(isFiltered ? `JSON exported (${exportTests.length} filtered tests)` : 'JSON exported successfully', 'success');
       closeExportMenu();
     }
 
     // CSV Export
     function exportCSV() {
+      const { exportTests, isFiltered } = getExportableTests();
       const headers = ['Title', 'File', 'Status', 'Duration (ms)', 'Flakiness Score', 'Stability Grade', 'Retries'];
-      const rows = tests.map(t => [
+      const rows = exportTests.map(t => [
         '"' + (t.title || '').replace(/"/g, '""') + '"',
         '"' + (t.file || '').replace(/"/g, '""') + '"',
         t.status || '',
@@ -6986,12 +7016,12 @@ function generateScripts(testsJson, includeGallery, includeComparison, enableTra
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = 'test-results-' + new Date().toISOString().split('T')[0] + '.csv';
+      a.download = 'test-results-' + (isFiltered ? 'filtered-' : '') + new Date().toISOString().split('T')[0] + '.csv';
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
       URL.revokeObjectURL(url);
-      showToast('CSV exported successfully', 'success');
+      showToast(isFiltered ? `CSV exported (${exportTests.length} filtered tests)` : 'CSV exported successfully', 'success');
       closeExportMenu();
     }
 
