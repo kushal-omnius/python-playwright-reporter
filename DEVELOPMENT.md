@@ -36,10 +36,12 @@ pytest run
             │    ├─ maps pytest JSON → Smart Reporter data format
             │    └─ embeds failure screenshots as base64 data URIs
             ├─ writes .smart-reporter-data.json
-            ├─ spawns: node _bundled_dist/generators/html-generator.js
+            ├─ writes throwaway .generate-report.js (require()s html-generator.js)
+            ├─ spawns: node .generate-report.js <data.json> <output.html>
             │    └─ reads data JSON → writes smart-report.html
             └─ _inject_copy_buttons()                [pure Python, post-process]
                  └─ appends <style>+<script> before </body>
+                      (copy buttons + drag-to-resize panel handle)
 ```
 
 Node.js is used only because `html-generator.js` is compiled TypeScript from the

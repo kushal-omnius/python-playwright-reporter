@@ -8,7 +8,7 @@ HTML reports with AI-powered analysis.
 Requires Node.js 18+ at runtime (no npm install needed).
 """
 
-from .bridge import SmartReporterBridge
+from .bridge import SmartReporterBridge, regenerate_html
 
-__version__ = "1.0.0"
-__all__ = ["SmartReporterBridge"]
+__version__ = "1.1.0"
+__all__ = ["SmartReporterBridge", "regenerate_html"]
