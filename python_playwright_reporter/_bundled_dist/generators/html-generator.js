@@ -381,6 +381,7 @@ function generateOverviewContent(results, comparison, failureClusters, passed, f
  */
 function generateHtml(data) {
     const { results, history, startTime, options, comparison, historyRunSnapshots, failureClusters, ciInfo, environment } = data;
+    const reportTitle = (options && options.title) ? options.title : 'Smart Report';
     const totalDuration = Date.now() - startTime;
     // Issue #17 & #16: Use outcome-based counting for accurate stats
     // - Flaky tests (outcome='flaky') passed on retry - count as passed AND flaky
@@ -525,7 +526,7 @@ function generateHtml(data) {
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Smart Report</title>${fontLinks}
+  <title>${(0, utils_1.escapeHtml)(reportTitle)}</title>${fontLinks}
   <style>
 ${generateStyles(passRate, cspSafe)}
   </style>
@@ -544,7 +545,7 @@ ${generateStyles(passRate, cspSafe)}
         </button>
         <div class="logo">
           <div class="logo-text">
-            <span class="logo-title" title="Playwright test reports for pytest.">Smart Report</span>
+            <span class="logo-title" title="Playwright test reports for pytest.">${(0, utils_1.escapeHtml)(reportTitle)}</span>
           </div>
           <div class="timestamp" title="Test run started">${startTime ? new Date(startTime).toLocaleString() : new Date().toLocaleString()}</div>
         </div>

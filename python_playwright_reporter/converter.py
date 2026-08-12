@@ -117,6 +117,7 @@ def _screenshots_for_nodeid(output_dir: Path, nodeid: str) -> List[str]:
 def convert_pytest_json(
     pytest_json_path: Path,
     output_dir: Optional[Path] = None,
+    report_title: Optional[str] = None,
 ) -> Dict[str, Any]:
     """
     Convert pytest JSON report to Playwright Smart Reporter data format.
@@ -126,6 +127,8 @@ def convert_pytest_json(
         output_dir: Optional path to pytest-playwright's --output directory.
             When supplied, failure screenshots are embedded as data URIs so the
             gallery view can display them.
+        report_title: Optional title shown in the browser tab and report header.
+            Defaults to 'Smart Report'.
 
     Returns:
         Dictionary in Smart Reporter HtmlGeneratorData format
@@ -212,6 +215,7 @@ def convert_pytest_json(
             # Reports are opened as file:// URLs where external resources are blocked.
             # cspSafe skips Google Fonts <link> tags and uses system fonts instead.
             "cspSafe": True,
+            **({"title": report_title} if report_title else {}),
         },
     }
 

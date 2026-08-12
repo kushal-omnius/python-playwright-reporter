@@ -256,6 +256,7 @@ class SmartReporterBridge:
         output_html: Path,
         data_json_path: Optional[Path] = None,
         output_dir: Optional[Path] = None,
+        report_title: Optional[str] = None,
     ) -> None:
         """
         Generate Smart Report from pytest JSON results.
@@ -266,9 +267,10 @@ class SmartReporterBridge:
             data_json_path: Optional path to save intermediate data JSON
             output_dir: Optional path to pytest-playwright's --output directory.
                 When supplied, failure screenshots are embedded in the report.
+            report_title: Optional title for the report browser tab and header.
         """
         # Convert pytest JSON to Smart Reporter format
-        html_data = convert_pytest_json(pytest_json_path, output_dir=output_dir)
+        html_data = convert_pytest_json(pytest_json_path, output_dir=output_dir, report_title=report_title)
 
         # Save intermediate data
         if data_json_path is None:

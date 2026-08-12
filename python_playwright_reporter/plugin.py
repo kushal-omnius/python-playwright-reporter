@@ -27,6 +27,12 @@ def pytest_addoption(parser):
         default="smart-report.html",
         help="Output path for Smart Report HTML (default: smart-report.html)",
     )
+    group.addoption(
+        "--smart-reporter-title",
+        action="store",
+        default=None,
+        help="Title shown in the report browser tab and header (default: Smart Report)",
+    )
 
 
 def pytest_configure(config):
@@ -58,6 +64,7 @@ class SmartReporterPlugin:
     def __init__(self, config):
         self.config = config
         self.output_path = Path(config.getoption("--smart-reporter-output"))
+        self.report_title = config.getoption("--smart-reporter-title", default=None)
 
     @pytest.hookimpl(trylast=True)
     def pytest_sessionfinish(self, session, exitstatus):
@@ -78,6 +85,7 @@ class SmartReporterPlugin:
                 pytest_json_path=pytest_json.resolve(),
                 output_html=self.output_path,
                 output_dir=output_dir,
+                report_title=self.report_title,
             )
             print(f"\n📊 Smart Report generated: {self.output_path.absolute()}")
         except Exception as e:
