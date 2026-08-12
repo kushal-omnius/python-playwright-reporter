@@ -147,11 +147,10 @@ def convert_pytest_json(
         else:
             file_part, title = "unknown", nodeid
 
-        # Strip pytest-playwright browser parametrize suffix (e.g. [chromium])
-        for _browser in ("[chromium]", "[firefox]", "[webkit]"):
-            if title.endswith(_browser):
-                title = title[: -len(_browser)].rstrip()
-                break
+        # Strip pytest-playwright browser parametrize suffix.
+        # Handles standalone [chromium] and combined [param-chromium] cases.
+        title = re.sub(r"-(chromium|firefox|webkit)\]$", "]", title)
+        title = re.sub(r"\[(chromium|firefox|webkit)\]$", "", title).rstrip()
 
         outcome = test.get("outcome")
         duration = test.get("duration")
