@@ -769,11 +769,13 @@ ${generateStyles(passRate, cspSafe)}
                 <button class="tab-btn active" data-tab="all" onclick="switchTestTab('all')" role="tab" aria-selected="true" aria-controls="tab-all">All Tests</button>
                 <button class="tab-btn" data-tab="by-status" onclick="switchTestTab('by-status')" role="tab" aria-selected="false" aria-controls="tab-by-status">By Status</button>
                 <button class="tab-btn" data-tab="by-stability" onclick="switchTestTab('by-stability')" role="tab" aria-selected="false" aria-controls="tab-by-stability">By Stability</button>
-              </div>
+               </div>
               <div class="test-list-search">
-                <input type="text" class="inline-search" placeholder="Filter tests..." oninput="searchTests(this.value)" aria-label="Filter tests by name">
+                <input type="text" class="inline-search" placeholder="Filter by name, file, status, tag…" oninput="searchTests(this.value)" aria-label="Filter tests by name, file, status, or tag">
               </div>
             </div>
+            <button id="tab-row-clear-filters" class="tab-row-clear-btn" onclick="clearAllFilters()" title="Clear all active filters" aria-label="Clear all filters" style="display:none;">✕ Clear All</button>
+              
             <div class="test-list-content">
               <!-- Empty state for no results -->
               <div class="empty-state" id="emptyState" style="display: none;">
@@ -2361,8 +2363,8 @@ function generateStyles(passRate, cspSafe = false) {
     }
 
     .tab-btn {
-      font-size: 0.75rem;
-      padding: 0.5rem 1rem;
+      font-size: 0.7rem;
+      padding: 0.5rem;
       border-radius: 8px;
       border: 1px solid transparent;
       background: transparent;
@@ -2382,6 +2384,25 @@ function generateStyles(passRate, cspSafe = false) {
       background: var(--bg-card);
       color: var(--accent-blue);
       border-color: var(--accent-blue);
+    }
+
+    .tab-row-clear-btn {
+      font-size: 0.7rem;
+      padding: 0.3rem 0.65rem;
+      border-radius: 6px;
+      border: 1px solid var(--border-color);
+      background: transparent;
+      color: var(--text-muted);
+      cursor: pointer;
+      transition: all 0.2s;
+      font-family: inherit;
+      white-space: nowrap;
+    }
+
+    .tab-row-clear-btn:hover {
+      background: var(--bg-card);
+      color: var(--text-primary);
+      border-color: var(--text-muted);
     }
 
     .test-list-search {
@@ -2775,13 +2796,8 @@ function generateStyles(passRate, cspSafe = false) {
     }
 
     /* Trend Chart - Pass Rate Over Time */
-    
-    .trend-content {
-      margin: 1rem;
-    }
-
     .trend-section {
-      margin-bottom: 2rem;
+      margin: 1rem;
       padding: 1.5rem;
       background: linear-gradient(135deg, var(--bg-card) 0%, var(--bg-secondary) 100%);
       border: 1px solid var(--border-subtle);
@@ -3980,7 +3996,7 @@ function generateStyles(passRate, cspSafe = false) {
 
     .error-box {
       font-family: ${monoFont};
-      font-size: 0.8rem;
+      font-size: 0.6rem;
       background: rgba(255, 68, 102, 0.1);
       border: 1px solid var(--accent-red-dim);
       border-radius: 8px;
@@ -4466,6 +4482,7 @@ function generateStyles(passRate, cspSafe = false) {
 
     .file-group-stat {
       padding: 0.2rem 0.5rem;
+      margin-left: 1rem;
       border-radius: 4px;
       font-size: 0.5rem;
       font-family: ${monoFont};
@@ -4734,8 +4751,8 @@ function generateStyles(passRate, cspSafe = false) {
 
     /* Gallery Styles */
     .gallery-section {
-      margin-bottom: 2rem;
-      padding: 1.5rem;
+      margin: 1rem;
+      padding: 1rem;
       background: var(--bg-card);
       border: 1px solid var(--border-subtle);
       border-radius: 16px;
@@ -6488,37 +6505,12 @@ function generateScripts(testsJson, includeGallery, includeComparison, enableTra
     ============================================ */
 
     function searchTests(query) {
-      const lowerQuery = query.toLowerCase();
-
-      // Filter test list items
-      document.querySelectorAll('.test-list-item').forEach(item => {
-        const title = item.querySelector('.test-item-title')?.textContent?.toLowerCase() || '';
-        const file = item.querySelector('.test-item-file')?.textContent?.toLowerCase() || '';
-        const matches = title.includes(lowerQuery) || file.includes(lowerQuery);
-        item.style.display = matches ? 'flex' : 'none';
-      });
-
-      // Also handle old test-card format for grouped view
-      document.querySelectorAll('.test-card').forEach(card => {
-        const title = card.querySelector('.test-title')?.textContent?.toLowerCase() || '';
-        const file = card.querySelector('.test-file')?.textContent?.toLowerCase() || '';
-        const matches = title.includes(lowerQuery) || file.includes(lowerQuery);
-        card.style.display = matches ? 'block' : 'none';
-      });
-
-      // Also show/hide file groups if all tests are hidden
-      document.querySelectorAll('.file-group').forEach(group => {
-        const hasVisible = Array.from(group.querySelectorAll('.test-card')).some(
-          card => card.style.display !== 'none'
-        );
-        group.style.display = hasVisible ? 'block' : 'none';
-      });
-
-      // Check for empty state
-      checkEmptyState();
+      currentSearchQuery = query;
+      applyFilters();
     }
 
     // Active filters state - organized by group
+    let currentSearchQuery = '';
     const activeFilters = {
       attention: new Set(),
       status: new Set(),
@@ -6557,6 +6549,9 @@ function generateScripts(testsJson, includeGallery, includeComparison, enableTra
         chip.classList.remove('active');
         chip.setAttribute('aria-pressed', 'false');
       });
+      currentSearchQuery = '';
+      const searchInput = document.querySelector('.inline-search');
+      if (searchInput) searchInput.value = '';
       applyFilters();
     }
 
@@ -6568,6 +6563,9 @@ function generateScripts(testsJson, includeGallery, includeComparison, enableTra
       const hasSuiteFilters = activeFilters.suite.size > 0;
       const hasTagFilters = activeFilters.tag.size > 0;
       const hasAnyFilter = hasAttentionFilters || hasStatusFilters || hasHealthFilters || hasGradeFilters || hasSuiteFilters || hasTagFilters;
+
+      const tabClearBtn = document.getElementById('tab-row-clear-filters');
+      if (tabClearBtn) tabClearBtn.style.display = hasAnyFilter ? 'inline-flex' : 'none';
 
       // Helper to check if element matches suite filter
       function matchesSuiteFilter(el) {
@@ -6593,6 +6591,19 @@ function generateScripts(testsJson, includeGallery, includeComparison, enableTra
         return false;
       }
 
+      // Inline search helper — AND-ed with chip filters
+      const sq = currentSearchQuery.toLowerCase();
+      function matchesSearch(el, titleSelector, fileSelector) {
+        if (!sq) return true;
+        const title = el.querySelector(titleSelector)?.textContent?.toLowerCase() || '';
+        const file = fileSelector
+          ? (el.querySelector(fileSelector)?.textContent?.toLowerCase() || '')
+          : (el.dataset.file || '').toLowerCase();
+        const status = (el.dataset.status || '').toLowerCase();
+        const tags = (el.dataset.tags || '').toLowerCase();
+        return title.includes(sq) || file.includes(sq) || status.includes(sq) || tags.includes(sq);
+      }
+
       // Filter test list items
       document.querySelectorAll('.test-list-item').forEach(item => {
         const status = item.dataset.status;
@@ -6604,9 +6615,9 @@ function generateScripts(testsJson, includeGallery, includeComparison, enableTra
         const isFixed = item.dataset.fixed === 'true';
         const grade = item.dataset.grade;
 
-        // If no filters active, show all
+        // If no chip-filters active, visibility is determined by search alone
         if (!hasAnyFilter) {
-          item.style.display = 'flex';
+          item.style.display = matchesSearch(item, '.test-item-title', null) ? 'flex' : 'none';
           return;
         }
 
@@ -6654,8 +6665,9 @@ function generateScripts(testsJson, includeGallery, includeComparison, enableTra
         const matchesSuite = matchesSuiteFilter(item);
         const matchesTag = matchesTagFilter(item);
 
-        // AND between groups
-        const show = matchesAttention && matchesStatus && matchesHealth && matchesGrade && matchesSuite && matchesTag;
+        // AND between groups, AND with search
+        const show = matchesAttention && matchesStatus && matchesHealth && matchesGrade && matchesSuite && matchesTag
+          && matchesSearch(item, '.test-item-title', null);
         item.style.display = show ? 'flex' : 'none';
       });
 
@@ -6671,7 +6683,7 @@ function generateScripts(testsJson, includeGallery, includeComparison, enableTra
         const grade = card.dataset.grade;
 
         if (!hasAnyFilter) {
-          card.style.display = 'block';
+          card.style.display = matchesSearch(card, '.test-title', '.test-file') ? 'block' : 'none';
           return;
         }
 
@@ -6714,7 +6726,8 @@ function generateScripts(testsJson, includeGallery, includeComparison, enableTra
         const matchesSuite = matchesSuiteFilter(card);
         const matchesTag = matchesTagFilter(card);
 
-        const show = matchesAttention && matchesStatus && matchesHealth && matchesGrade && matchesSuite && matchesTag;
+        const show = matchesAttention && matchesStatus && matchesHealth && matchesGrade && matchesSuite && matchesTag
+          && matchesSearch(card, '.test-title', '.test-file');
         card.style.display = show ? 'block' : 'none';
       });
 
@@ -6747,6 +6760,26 @@ function generateScripts(testsJson, includeGallery, includeComparison, enableTra
         emptyState.style.display = 'none';
         tabs.forEach(tab => tab.style.opacity = '1');
       }
+    }
+
+    function showImageModal(src) {
+      let modal = document.getElementById('screenshot-modal');
+      if (!modal) {
+        modal = document.createElement('div');
+        modal.id = 'screenshot-modal';
+        modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.92);z-index:10000;display:flex;align-items:center;justify-content:center;cursor:zoom-out;';
+        modal.innerHTML = '<img style="max-width:95vw;max-height:95vh;object-fit:contain;border-radius:4px;cursor:default;" />'
+          + '<button style="position:absolute;top:1rem;right:1.25rem;background:none;border:none;color:#fff;font-size:2rem;line-height:1;cursor:pointer;opacity:0.8;" title="Close">×</button>';
+        modal.addEventListener('click', function(e) {
+          if (e.target === modal || e.target.tagName === 'BUTTON') modal.style.display = 'none';
+        });
+        document.addEventListener('keydown', function(e) {
+          if (e.key === 'Escape' && modal.style.display !== 'none') modal.style.display = 'none';
+        });
+        document.body.appendChild(modal);
+      }
+      modal.querySelector('img').src = src;
+      modal.style.display = 'flex';
     }
 
     // Legacy single-filter function for backward compatibility

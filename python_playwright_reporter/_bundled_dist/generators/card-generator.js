@@ -354,7 +354,7 @@ function generateTestDetails(test, cardId, showTraceSection) {
       <div class="detail-section">
         <div class="detail-label"><span class="icon">📸</span> Screenshot</div>
         <div class="screenshot-box">
-          <img src="${test.screenshot}" alt="Failure screenshot" onclick="window.open(this.src, '_blank')" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';"/>
+          <img src="${test.screenshot}" alt="Failure screenshot" style="cursor:zoom-in;" onclick="showImageModal(this.src)" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';"/>
           <div class="screenshot-fallback" style="display:none;">
             <span>Image blocked by security policy</span>
             <a href="${test.screenshot}" download class="download-btn">Download Screenshot</a>
@@ -362,6 +362,22 @@ function generateTestDetails(test, cardId, showTraceSection) {
         </div>
       </div>
     `;
+    }
+    if (test.attachments?.screenshots?.length) {
+        test.attachments.screenshots.forEach((src, idx) => {
+            bodyDetails += `
+      <div class="detail-section">
+        <div class="detail-label"><span class="icon">📸</span> Screenshot${test.attachments.screenshots.length > 1 ? ` ${idx + 1}` : ''}</div>
+        <div class="screenshot-box">
+          <img src="${src}" alt="Failure screenshot ${idx + 1}" style="cursor:zoom-in;" onclick="showImageModal(this.src)" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';"/>
+          <div class="screenshot-fallback" style="display:none;">
+            <span>Image blocked by security policy</span>
+            <a href="${src}" download class="download-btn">Download Screenshot</a>
+          </div>
+        </div>
+      </div>
+    `;
+        });
     }
     if (test.videoPath) {
         bodyDetails += `
@@ -468,6 +484,7 @@ function generateGroupedTests(results, showTraceSection, attention = { newFailur
              data-fixed="${isFixed}"
              data-file="${(0, utils_1.escapeHtml)(test.file)}"
              data-grade="${test.stabilityScore?.grade || ''}"
+             data-tags="${test.tags && test.tags.length > 0 ? test.tags.map(t => (0, utils_1.escapeHtml)(t)).join(',') : ''}"
              onclick="selectTest('${cardId}')">
           <div class="test-item-status">
             <div class="status-dot ${statusClass}"></div>
@@ -493,6 +510,7 @@ function generateGroupedTests(results, showTraceSection, attention = { newFailur
       <div class="file-group-header" onclick="toggleGroup('${groupId}')">
         <span class="expand-icon">▶</span>
         <span class="file-group-name">📄 ${(0, utils_1.escapeHtml)(file)}</span>
+        </br>
         ${passed > 0 ? `<span class="file-group-stat passed">${passed} passed</span>` : ''}
         ${failed > 0 ? `<span class="file-group-stat failed">${failed} failed</span>` : ''}
       </div>
