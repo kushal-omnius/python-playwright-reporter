@@ -6758,11 +6758,11 @@ function generateScripts(testsJson, includeGallery, includeComparison, enableTra
           .map(el => el.dataset.testid)
       );
       const isFiltered = visibleIds.size < tests.length;
-      const countLabel = isFiltered ? ` (${visibleIds.size} filtered)` : '';
+      const countLabel = isFiltered ? ' (' + visibleIds.size + ' filtered)' : '';
       const jsonBtn = document.querySelector('.export-menu-item[onclick="exportJSON()"]');
       const csvBtn = document.querySelector('.export-menu-item[onclick="exportCSV()"]');
-      if (jsonBtn) jsonBtn.innerHTML = `<span>📄</span> JSON${countLabel}`;
-      if (csvBtn) csvBtn.innerHTML = `<span>📊</span> CSV${countLabel}`;
+      if (jsonBtn) jsonBtn.innerHTML = '<span>📄</span> JSON' + countLabel;
+      if (csvBtn) csvBtn.innerHTML = '<span>📊</span> CSV' + countLabel;
     }
 
     function getExportableTests() {
@@ -6993,7 +6993,7 @@ function generateScripts(testsJson, includeGallery, includeComparison, enableTra
       a.click();
       document.body.removeChild(a);
       URL.revokeObjectURL(url);
-      showToast(isFiltered ? `JSON exported (${exportTests.length} filtered tests)` : 'JSON exported successfully', 'success');
+      showToast(isFiltered ? 'JSON exported (' + exportTests.length + ' filtered tests)' : 'JSON exported successfully', 'success');
       closeExportMenu();
     }
 
@@ -7021,7 +7021,7 @@ function generateScripts(testsJson, includeGallery, includeComparison, enableTra
       a.click();
       document.body.removeChild(a);
       URL.revokeObjectURL(url);
-      showToast(isFiltered ? `CSV exported (${exportTests.length} filtered tests)` : 'CSV exported successfully', 'success');
+      showToast(isFiltered ? 'CSV exported (' + exportTests.length + ' filtered tests)' : 'CSV exported successfully', 'success');
       closeExportMenu();
     }
 
