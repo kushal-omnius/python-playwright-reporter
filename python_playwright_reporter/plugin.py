@@ -15,24 +15,29 @@ from .bridge import SmartReporterBridge
 def pytest_addoption(parser):
     """Add command-line options for Smart Reporter."""
     group = parser.getgroup("smart-reporter")
-    group.addoption(
-        "--smart-reporter",
-        action="store_true",
-        default=False,
-        help="Generate Playwright Smart Report after test run",
-    )
-    group.addoption(
-        "--smart-reporter-output",
-        action="store",
-        default="smart-report.html",
-        help="Output path for Smart Report HTML (default: smart-report.html)",
-    )
-    group.addoption(
-        "--smart-reporter-title",
-        action="store",
-        default=None,
-        help="Title shown in the report browser tab and header (default: Smart Report)",
-    )
+    # Guard against duplicate registration when the upstream
+    # playwright-smart-reporter-python is also installed.
+    for name, kwargs in [
+        ("--smart-reporter", dict(
+            action="store_true",
+            default=False,
+            help="Generate Playwright Smart Report after test run",
+        )),
+        ("--smart-reporter-output", dict(
+            action="store",
+            default="smart-report.html",
+            help="Output path for Smart Report HTML (default: smart-report.html)",
+        )),
+        ("--smart-reporter-title", dict(
+            action="store",
+            default=None,
+            help="Title shown in the report browser tab and header (default: Smart Report)",
+        )),
+    ]:
+        try:
+            group.addoption(name, **kwargs)
+        except ValueError:
+            pass
 
 
 def pytest_configure(config):

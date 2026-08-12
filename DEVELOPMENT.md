@@ -69,14 +69,13 @@ Edit files in `python_playwright_reporter/`. With an editable install changes
 take effect immediately — no reinstall needed.
 
 ### Updating the bundled JS generators
-`_bundled_dist/` is committed to this repo. It is taken from the upstream
-`playwright-smart-reporter-python` wheel and does not need rebuilding.
+`_bundled_dist/` is committed to this repo.
 
 To update it when upstream releases a new version:
 
 ```bash
 # 1. Download the new upstream wheel (no install)
-pip download playwright-smart-reporter-python==<new-version> --no-deps -d /tmp/psr-wheel
+pip download python-playwright-reporter==<new-version> --no-deps -d /tmp/psr-wheel
 
 # 2. Extract _bundled_dist from the wheel (wheels are zip files)
 cd /tmp/psr-wheel

@@ -9,6 +9,19 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ---
 
+## [1.1.2] — 2026-08-12
+
+### Fixed
+
+- **Duplicate option crash when coexisting with upstream package**: after the v1.1.1
+  entry point rename, both plugins load cleanly but both attempt to register
+  `--smart-reporter` / `--smart-reporter-output`, causing pytest to raise
+  `ValueError: option names {'--smart-reporter'} already added`. Each `addoption`
+  call is now wrapped in a `try/except ValueError` so whichever plugin registers
+  the options first wins and the second silently skips.
+
+---
+
 ## [1.1.1] — 2026-08-12
 
 ### Fixed
