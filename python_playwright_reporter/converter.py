@@ -176,7 +176,7 @@ def convert_pytest_json(
                 "error": error,
                 "retry": 0,
                 "outcome": _playwright_outcome(outcome),
-                "expectedStatus": "passed",
+                "expectedStatus": "skipped" if outcome == "skipped" else "passed",
                 "steps": [],
                 "history": [],
                 "tags": keywords if isinstance(keywords, list) else [],

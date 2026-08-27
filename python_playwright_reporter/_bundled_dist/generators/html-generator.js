@@ -4491,6 +4491,7 @@ function generateStyles(passRate, cspSafe = false) {
 
     .file-group-stat.passed { color: var(--accent-green); background: rgba(0, 255, 136, 0.1); }
     .file-group-stat.failed { color: var(--accent-red); background: rgba(255, 68, 102, 0.1); }
+    .file-group-stat.skipped { color: var(--text-muted); background: rgba(90, 90, 112, 0.1); }
 
     .file-group-content {
       display: flex;

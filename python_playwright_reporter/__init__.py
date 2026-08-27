@@ -10,5 +10,5 @@ Requires Node.js 18+ at runtime (no npm install needed).
 
 from .bridge import SmartReporterBridge, regenerate_html
 
-__version__ = "1.1.2"
+__version__ = "1.1.3"
 __all__ = ["SmartReporterBridge", "regenerate_html"]

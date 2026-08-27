@@ -451,6 +451,7 @@ function generateGroupedTests(results, showTraceSection, attention = { newFailur
     return Array.from(groups.entries()).map(([file, tests]) => {
         const passed = tests.filter(t => t.status === 'passed').length;
         const failed = tests.filter(t => t.status === 'failed' || t.status === 'timedOut').length;
+        const skipped = tests.filter(t => t.status === 'skipped').length;
         const groupId = (0, utils_1.sanitizeId)(file);
         // Generate list items (not full cards) so clicking selects and shows in detail panel
         const testListItems = tests.map(test => {
@@ -513,6 +514,7 @@ function generateGroupedTests(results, showTraceSection, attention = { newFailur
         </br>
         ${passed > 0 ? `<span class="file-group-stat passed">${passed} passed</span>` : ''}
         ${failed > 0 ? `<span class="file-group-stat failed">${failed} failed</span>` : ''}
+        ${skipped > 0 ? `<span class="file-group-stat skipped">${skipped} skipped</span>` : ''}
       </div>
       <div class="file-group-content">
         ${testListItems}

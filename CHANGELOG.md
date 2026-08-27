@@ -9,6 +9,21 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ---
 
+## [1.1.3] — 2026-08-27
+
+### Fixed
+
+- **Skipped tests missing from By Spec group header**: the file-group header in the
+  By Spec tab counted only passed and failed tests. Files containing only skipped
+  tests showed no stats at all. A `skipped` count is now computed and rendered with
+  its own muted-colour badge alongside the passed/failed badges.
+- **`expectedStatus` always `"passed"` for skipped tests**: the Playwright data format
+  uses `"skipped"` for tests that were intentionally skipped. The converter now sets
+  `expectedStatus: "skipped"` when the pytest outcome is `"skipped"` and `"passed"`
+  otherwise.
+
+---
+
 ## [1.1.2] — 2026-08-12
 
 ### Fixed
