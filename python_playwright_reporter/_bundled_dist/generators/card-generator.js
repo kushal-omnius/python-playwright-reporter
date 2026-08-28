@@ -292,7 +292,17 @@ function generateTestDetails(test, cardId, showTraceSection) {
     if (test.networkLogs && test.networkLogs.entries.length > 0) {
         bodyDetails += generateNetworkLogsSection(test.networkLogs, cardId);
     }
-    if (test.error) {
+    if (test.status === 'skipped') {
+        const skipReason = test.error
+            ? test.error.replace(/^Skipped:\s*/i, '').trim()
+            : 'No reason provided';
+        bodyDetails += `
+      <div class="detail-section">
+        <div class="detail-label"><span class="icon">⏭</span> Skip Reason</div>
+        <div class="skip-reason-box">${(0, utils_1.escapeHtml)(skipReason)}</div>
+      </div>
+    `;
+    } else if (test.error) {
         // Try to extract expected/actual values from assertion errors for diff view
         let diffHtml = '';
         const expectedMatch = test.error.match(/Expected\s*(?:string|value|pattern)?:?\s*(.+)/i);

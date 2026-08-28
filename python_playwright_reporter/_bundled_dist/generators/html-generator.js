@@ -4007,6 +4007,18 @@ function generateStyles(passRate, cspSafe = false) {
       white-space: pre-wrap;
       word-break: break-word;
     }
+    .skip-reason-box {
+      font-family: ${monoFont};
+      font-size: 0.6rem;
+      background: rgba(90, 90, 112, 0.08);
+      border: 1px solid var(--text-muted);
+      border-radius: 8px;
+      padding: 1rem;
+      color: var(--text-muted);
+      overflow-x: auto;
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
 
     .stack-box {
       font-family: ${monoFont};
@@ -6374,7 +6386,12 @@ function generateScripts(testsJson, includeGallery, includeComparison, enableTra
                 </div>
                 <div class="detail-duration">\${formatDurationMs(test.duration)}</div>
               </div>
-              \${test.error ? \`
+              \${test.status === 'skipped' ? \`
+                <div class="detail-section">
+                  <div class="detail-label"><span class="icon">⏭</span> Skip Reason</div>
+                  <div class="skip-reason-box">\${escapeHtmlUnsafe((test.error || 'No reason provided').replace(/^Skipped:\\s*/i, ''))}</div>
+                </div>
+              \` : test.error ? \`
                 <div class="detail-section">
                   <div class="detail-label"><span class="icon">⚠</span> Error</div>
                   <div class="error-box">\${escapeHtmlUnsafe(test.error)}</div>

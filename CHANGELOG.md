@@ -9,6 +9,20 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ---
 
+## [1.1.4] — 2026-08-27
+
+### Added
+
+- **Dedicated skip-reason card for skipped tests**: skipped tests now show a
+  `⏭ Skip Reason` section in their detail panel instead of the red `⚠ Error`
+  box used by failed tests. The section uses muted styling (grey border/text)
+  to visually distinguish an intentional skip from an unexpected failure. The
+  "Skipped: " prefix from pytest's longrepr is stripped so only the human-readable
+  reason is shown. Both the server-rendered card and the client-side fallback
+  renderer apply this treatment.
+
+---
+
 ## [1.1.3] — 2026-08-27
 
 ### Fixed
