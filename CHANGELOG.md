@@ -9,6 +9,17 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ---
 
+## [1.1.5] — 2026-08-28
+
+### Added
+
+- **SKIPPED stat card in sidebar**: a muted-colour "Skipped" button now appears in
+  the sidebar stats row (alongside Passed / Failed / Flaky) whenever the run contains
+  at least one skipped test. Clicking it filters the test list to skipped tests via
+  `filterByStatus('skipped')`, consistent with the existing mini-bar row behaviour.
+
+---
+
 ## [1.1.4] — 2026-08-27
 
 ### Added

@@ -643,6 +643,10 @@ ${generateStyles(passRate, cspSafe)}
           <span class="mini-stat-value">${flaky}</span>
           <span class="mini-stat-label">Flaky</span>
         </button>
+        ${skipped > 0 ? `<button class="mini-stat skipped" onclick="filterByStatus('skipped')" title="Skipped tests" aria-label="${skipped} skipped tests - click to filter">
+          <span class="mini-stat-value">${skipped}</span>
+          <span class="mini-stat-label">Skipped</span>
+        </button>` : ''}
       </div>
 
       <!-- Navigation -->
@@ -1384,6 +1388,7 @@ function generateStyles(passRate, cspSafe = false) {
     .mini-stat.passed .mini-stat-value { color: var(--accent-green); }
     .mini-stat.failed .mini-stat-value { color: var(--accent-red); }
     .mini-stat.flaky .mini-stat-value { color: var(--accent-yellow); }
+    .mini-stat.skipped .mini-stat-value { color: var(--text-muted); }
 
     .sidebar-nav {
       padding: 0.75rem;
