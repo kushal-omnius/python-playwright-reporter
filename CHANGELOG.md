@@ -9,6 +9,19 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ---
 
+## [1.1.6] — 2026-08-28
+
+### Changed
+
+- **Flaky Tests dedicated view**: flaky tests are no longer represented by a
+  sidebar mini-stat card. Instead a "Flaky Tests" navigation tab (with a yellow
+  badge count) appears between Tests and Trends. The view lists every flaky test
+  as a card showing title, file location, and a flakiness-score bar. An empty
+  state is shown when no flaky tests were detected. Clicking a card navigates to
+  the test detail in the Tests view.
+
+---
+
 ## [1.1.5] — 2026-08-28
 
 ### Added

@@ -639,10 +639,6 @@ ${generateStyles(passRate, cspSafe)}
           <span class="mini-stat-value">${failed}</span>
           <span class="mini-stat-label">Failed</span>
         </button>
-        <button class="mini-stat flaky" onclick="filterTests('flaky')" title="Flaky tests" aria-label="${flaky} flaky tests - click to filter">
-          <span class="mini-stat-value">${flaky}</span>
-          <span class="mini-stat-label">Flaky</span>
-        </button>
         ${skipped > 0 ? `<button class="mini-stat skipped" onclick="filterByStatus('skipped')" title="Skipped tests" aria-label="${skipped} skipped tests - click to filter">
           <span class="mini-stat-value">${skipped}</span>
           <span class="mini-stat-label">Skipped</span>
@@ -661,6 +657,11 @@ ${generateStyles(passRate, cspSafe)}
             <span class="nav-icon" aria-hidden="true">🧪</span>
             <span class="nav-label">Tests</span>
             <span class="nav-badge" aria-label="${total} total tests">${total}</span>
+          </button>
+          <button class="nav-item" data-view="flaky" onclick="switchView('flaky')" role="tab" aria-selected="false" aria-controls="view-flaky">
+            <span class="nav-icon" aria-hidden="true">⚠️</span>
+            <span class="nav-label">Flaky Tests</span>
+            ${flaky > 0 ? `<span class="nav-badge nav-badge-warn" aria-label="${flaky} flaky tests">${flaky}</span>` : ''}
           </button>
           <button class="nav-item" data-view="trends" onclick="switchView('trends')" role="tab" aria-selected="false" aria-controls="view-trends">
             <span class="nav-icon" aria-hidden="true">📈</span>
@@ -854,6 +855,42 @@ ${generateStyles(passRate, cspSafe)}
               <div class="placeholder-hint">Click on any test in the list</div>
             </div>
           </div>
+        </div>
+      </section>
+
+      <!-- Flaky Tests View -->
+      <section class="view-panel" id="view-flaky" role="tabpanel" aria-label="Flaky Tests" style="display: none;">
+        <div class="view-header">
+          <h2 class="view-title">Flaky Tests</h2>
+        </div>
+        <div class="flaky-content">
+          ${(() => {
+            const flakyTests = results.filter(r => r.outcome === 'flaky');
+            if (flakyTests.length === 0) {
+              return `<div class="flaky-empty"><span class="flaky-empty-icon">✅</span><p>No flaky tests detected in this run.</p></div>`;
+            }
+            const sorted = [...flakyTests].sort((a, b) => (b.flakinessScore ?? 0) - (a.flakinessScore ?? 0));
+            return `
+            <div class="flaky-summary">
+              <span class="flaky-summary-count">${flakyTests.length}</span> flaky test${flakyTests.length !== 1 ? 's' : ''} detected — these tests passed on retry, indicating intermittent failures.
+            </div>
+            <div class="flaky-list">
+              ${sorted.map(t => {
+                const score = t.flakinessScore != null ? Math.round(t.flakinessScore * 100) : null;
+                const scoreBar = score != null ? `<div class="flaky-score-bar"><div class="flaky-score-fill" style="width:${Math.min(score, 100)}%"></div></div>` : '';
+                const scoreLabel = score != null ? `<span class="flaky-score-label">${score}% failure rate</span>` : '';
+                return `
+              <div class="flaky-card" onclick="selectTest('${(0, utils_1.sanitizeId)(t.testId)}'); switchView('tests');" title="View test detail" role="button" tabindex="0">
+                <div class="flaky-card-header">
+                  <span class="flaky-badge">Flaky</span>
+                  <span class="flaky-card-title">${(0, utils_1.escapeHtml)(t.title)}</span>
+                </div>
+                ${t.location ? `<div class="flaky-card-file">${(0, utils_1.escapeHtml)(t.location)}</div>` : ''}
+                ${score != null ? `<div class="flaky-card-score">${scoreBar}${scoreLabel}</div>` : ''}
+              </div>`;
+              }).join('')}
+            </div>`;
+          })()}
         </div>
       </section>
 
@@ -1473,6 +1510,36 @@ function generateStyles(passRate, cspSafe = false) {
       border-radius: 10px;
       color: var(--text-muted);
     }
+    .nav-badge-warn {
+      background: rgba(255, 204, 0, 0.15);
+      color: var(--accent-yellow);
+    }
+
+    /* Flaky Tests View */
+    .flaky-content { padding: 1.5rem; display: flex; flex-direction: column; gap: 1rem; }
+    .flaky-empty { display: flex; flex-direction: column; align-items: center; gap: 0.75rem; padding: 3rem; color: var(--text-muted); text-align: center; }
+    .flaky-empty-icon { font-size: 2.5rem; }
+    .flaky-summary { font-size: 0.85rem; color: var(--text-muted); padding: 0.75rem 1rem; background: rgba(255, 204, 0, 0.06); border: 1px solid rgba(255, 204, 0, 0.2); border-radius: 8px; }
+    .flaky-summary-count { font-weight: 700; color: var(--accent-yellow); font-size: 1.1rem; }
+    .flaky-list { display: flex; flex-direction: column; gap: 0.75rem; }
+    .flaky-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-subtle);
+      border-left: 3px solid var(--accent-yellow);
+      border-radius: 8px;
+      padding: 1rem 1.25rem;
+      cursor: pointer;
+      transition: background 0.15s, border-color 0.15s;
+    }
+    .flaky-card:hover { background: var(--bg-hover); border-color: var(--accent-yellow); }
+    .flaky-card-header { display: flex; align-items: center; gap: 0.6rem; flex-wrap: wrap; margin-bottom: 0.35rem; }
+    .flaky-badge { font-size: 0.65rem; font-weight: 700; padding: 0.15rem 0.45rem; border-radius: 4px; background: rgba(255, 204, 0, 0.15); color: var(--accent-yellow); text-transform: uppercase; letter-spacing: 0.04em; flex-shrink: 0; }
+    .flaky-card-title { font-size: 0.875rem; font-weight: 500; color: var(--text-primary); word-break: break-word; }
+    .flaky-card-file { font-size: 0.75rem; color: var(--text-muted); font-family: ${monoFont}; margin-top: 0.2rem; }
+    .flaky-card-score { margin-top: 0.6rem; display: flex; align-items: center; gap: 0.75rem; }
+    .flaky-score-bar { flex: 1; height: 4px; background: var(--bg-secondary); border-radius: 2px; overflow: hidden; max-width: 180px; }
+    .flaky-score-fill { height: 100%; background: var(--accent-yellow); border-radius: 2px; }
+    .flaky-score-label { font-size: 0.72rem; color: var(--accent-yellow); font-family: ${monoFont}; }
 
     .sidebar-filters {
       padding: 0.75rem;
