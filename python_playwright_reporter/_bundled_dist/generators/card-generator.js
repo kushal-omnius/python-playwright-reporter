@@ -109,7 +109,7 @@ function generateTestCard(test, showTraceSection) {
     const projectAttr = test.project ? ` data-project="${(0, utils_1.escapeHtml)(test.project)}"` : '';
     // Generate tags display
     const tagsHtml = test.tags && test.tags.length > 0
-        ? `<div class="test-tags">${test.tags.map(t => `<span class="test-tag">${(0, utils_1.escapeHtml)(t)}</span>`).join('')}</div>`
+        ? `<div class="test-tags">${test.tags.filter(t => t && t.trim()).map(t => `<span class="test-tag">${(0, utils_1.escapeHtml)(t)}</span>`).join('')}</div>`
         : '';
     // Generate suite badge display
     const suiteHtml = test.suite

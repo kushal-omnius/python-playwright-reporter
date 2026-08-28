@@ -595,6 +595,8 @@ ${generateStyles(passRate, cspSafe)}
     <nav class="breadcrumbs">
       <span class="breadcrumb active" data-view="tests">.</span>
       <span class="breadcrumb-separator">›</span>
+      <span class="breadcrumb breadcrumb-file" id="breadcrumb-file" style="display:none"></span>
+      <span class="breadcrumb-separator breadcrumb-file-sep" id="breadcrumb-file-sep" style="display:none">›</span>
       <span class="breadcrumb" id="breadcrumb-detail"></span>
     </nav>
     ${ciInfo ? `
@@ -712,7 +714,7 @@ ${generateStyles(passRate, cspSafe)}
           </div>
         </div>
         <div class="filter-group" data-group="grade" role="group" aria-label="Grade filters">
-          <div class="filter-group-title" id="grade-filter-label">Grade</div>
+          <div class="filter-group-title" id="grade-filter-label">Stability Grade</div>
           <div class="filter-chips grade-chips" role="group" aria-labelledby="grade-filter-label">
             <button class="filter-chip grade-a" data-filter="grade-a" data-group="grade" onclick="toggleFilter(this)" aria-pressed="false" aria-label="Grade A">A</button>
             <button class="filter-chip grade-b" data-filter="grade-b" data-group="grade" onclick="toggleFilter(this)" aria-pressed="false" aria-label="Grade B">B</button>
@@ -6221,9 +6223,11 @@ function generateScripts(testsJson, includeGallery, includeComparison, enableTra
 
       // Update breadcrumb
       const breadcrumbDetail = document.getElementById('breadcrumb-detail');
-      if (breadcrumbDetail) {
-        breadcrumbDetail.textContent = view.charAt(0).toUpperCase() + view.slice(1);
-      }
+      if (breadcrumbDetail) breadcrumbDetail.textContent = view.charAt(0).toUpperCase() + view.slice(1);
+      const bcFile = document.getElementById('breadcrumb-file');
+      const bcFileSep = document.getElementById('breadcrumb-file-sep');
+      if (bcFile) { bcFile.textContent = ''; bcFile.style.display = 'none'; }
+      if (bcFileSep) bcFileSep.style.display = 'none';
 
       currentView = view;
     }
@@ -6438,10 +6442,21 @@ function generateScripts(testsJson, includeGallery, includeComparison, enableTra
           applyHistoricalRunToCard(clone, test.testId, globalHistoricalRunId);
         }
 
-        // Update breadcrumb
+        // Update breadcrumb: . › file › test title
         const breadcrumbDetail = document.getElementById('breadcrumb-detail');
-        if (breadcrumbDetail) {
-          breadcrumbDetail.textContent = test.title;
+        if (breadcrumbDetail) breadcrumbDetail.textContent = test.title;
+        const breadcrumbFile = document.getElementById('breadcrumb-file');
+        const breadcrumbFileSep = document.getElementById('breadcrumb-file-sep');
+        if (breadcrumbFile && breadcrumbFileSep) {
+          const filePath = test.file || test.location || '';
+          if (filePath) {
+            breadcrumbFile.textContent = filePath;
+            breadcrumbFile.style.display = '';
+            breadcrumbFileSep.style.display = '';
+          } else {
+            breadcrumbFile.style.display = 'none';
+            breadcrumbFileSep.style.display = 'none';
+          }
         }
       } else {
         // Fallback: render basic details if card not found
@@ -6520,17 +6535,19 @@ function generateScripts(testsJson, includeGallery, includeComparison, enableTra
       // Switch to tests view first
       switchView('tests');
 
-      // Clear all filters and activate the matching status filter
+      // Clear all filter state and chip visual state
+      Object.keys(activeFilters).forEach(k => activeFilters[k].clear());
       document.querySelectorAll('.filter-chip').forEach(chip => {
         chip.classList.remove('active');
         chip.setAttribute('aria-pressed', 'false');
       });
 
-      // Find and activate the matching status filter chip
-      const statusChip = document.querySelector('.filter-chip[data-filter="' + status + '"]');
+      // Activate the matching status filter chip and update state
+      const statusChip = document.querySelector('.filter-chip[data-filter="' + status + '"][data-group="status"]');
       if (statusChip) {
         statusChip.classList.add('active');
         statusChip.setAttribute('aria-pressed', 'true');
+        activeFilters.status.add(status);
       }
 
       // Apply filter to test cards and list items

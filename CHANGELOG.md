@@ -11,14 +11,33 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [1.1.6] — 2026-08-28
 
+### Added
+
+- **File path in breadcrumbs**: selecting a test now shows its spec file as an
+  intermediate breadcrumb segment — `. › playwright/tests/ui/test_foo.py › test_name`.
+  The file segment is hidden when no test is selected and cleared on view switch.
+- **Flaky Tests dedicated view**: a "Flaky Tests" navigation tab (with a yellow badge
+  count when flaky > 0) appears between Tests and Trends. The view lists every flaky
+  test as a card showing title, file location, and a flakiness-score bar. An empty
+  state is shown when the run has no flaky tests. Clicking a card navigates to the
+  test detail in the Tests view.
+
 ### Changed
 
-- **Flaky Tests dedicated view**: flaky tests are no longer represented by a
-  sidebar mini-stat card. Instead a "Flaky Tests" navigation tab (with a yellow
-  badge count) appears between Tests and Trends. The view lists every flaky test
-  as a card showing title, file location, and a flakiness-score bar. An empty
-  state is shown when no flaky tests were detected. Clicking a card navigates to
-  the test detail in the Tests view.
+- **Flaky sidebar card removed**: the Flaky mini-stat card has been replaced by the
+  dedicated Flaky Tests view above.
+- **Stability Grade filter label**: the grade filter group title is now "Stability Grade"
+  instead of "Grade" for clarity.
+
+### Fixed
+
+- **Empty tag rendered as blank chip**: tags containing an empty string were rendered
+  as a blank blue pill in the test card. Empty and whitespace-only tags are now
+  filtered out before rendering.
+- **Skipped / filterByStatus not applying**: `filterByStatus()` updated chip visual
+  state but never synced the `activeFilters` state object that `applyFilters()` reads,
+  so clicking the Skipped card had no effect. The function now clears and re-populates
+  `activeFilters` before calling `applyFilters()`.
 
 ---
 
